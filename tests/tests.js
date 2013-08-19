@@ -1,3 +1,6 @@
+var headers = { 'Content-Type': 'application/json' }
+  , response = '{ "test": true }';
+
 describe('Creation', function() {
   var windex;
 
@@ -62,7 +65,7 @@ describe('Requesting', function() {
       done();
     });
 
-    server.requests[0].respond(200, {}, '{ "test": true }');
+    server.requests[0].respond(200, headers, response);
   });
 
   !function() {
@@ -80,7 +83,7 @@ describe('Requesting', function() {
           done();
         });
 
-        server.requests[a].respond(200, {}, '{ "test": true }');
+        server.requests[a].respond(200, headers, response);
       }
     });
   }();
@@ -89,7 +92,7 @@ describe('Requesting', function() {
     windex.prefix = '/my-test-prefix/';
     windex.suffix = '.json';
 
-    server.respondWith('GET', /^\/my\-test\-prefix\/test\.json/, [200, {}, '{ "test": true }']);
+    server.respondWith('GET', /^\/my\-test\-prefix\/test\.json/, [200, headers, response]);
 
     windex.get('test').then(function(r) {
       r.should.be.an('object');
@@ -101,7 +104,7 @@ describe('Requesting', function() {
   });
 
   it('Should add a cache breaking parameter if caching is disabled.', function(done) {
-    server.respondWith('GET', /^\/test\?_/, [200, {}, '{ "test": true }']);
+    server.respondWith('GET', /^\/test\?_/, [200, headers, response]);
 
     windex.get('test').then(function(r) {
       r.should.be.an('object');
@@ -115,7 +118,7 @@ describe('Requesting', function() {
   it('Should not add a cache breaking parameter if caching is enabled.', function(done) {
     windex.cache = true;
 
-    server.respondWith('GET', /^\/test$/, [200, {}, '{ "test": true }']);
+    server.respondWith('GET', /^\/test$/, [200, headers, response]);
 
     windex.get('test').then(function(r) {
       r.should.be.an('object');
@@ -144,8 +147,8 @@ describe('Proxies', function() {
     var proxy = windex.proxy('GET :action', { action: 'default' });
     windex.suffix = '.json';
 
-    server.respondWith('GET', /^\/default.json/, [200, {}, '{ "action": "default" }']);
-    server.respondWith('GET', /^\/modified.json/, [200, {}, '{ "action": "modified" }']);
+    server.respondWith('GET', /^\/default.json/, [200, headers, '{ "action": "default" }']);
+    server.respondWith('GET', /^\/modified.json/, [200, headers, '{ "action": "modified" }']);
 
     Q.all([
       proxy(),
