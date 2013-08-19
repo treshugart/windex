@@ -14,7 +14,7 @@ Overview
 
 The goal of Windex is to make maintaining calls to HTTP endpoints short, simple and maintainable. It gives you the flexibility of defining methods which abstract the HTTP call and parameterization while returning you a promise that is fulfilled or rejected when the call is finished.
 
-    var http = Windex.create();
+    var http = Windex.create()
       , repo = {
           createUser: http.proxy('POST users'),
           readUser: http.proxy('GET users/:id'),
@@ -22,7 +22,7 @@ The goal of Windex is to make maintaining calls to HTTP endpoints short, simple 
           deleteUser: http.proxy('DELETE users/:id')
         };
 
-You have just made maintaining the endpoint URLs easier and have also made your code more self-documenting. Use these new functions just as you would normally with the added bonus of promises.
+In doing this, you have just made maintaining the endpoint URLs easier and have also made your code more self-documenting. You can use these new functions just as you would normally with the added bonus of promises.
 
     repo.createUser({ name: 'Bob Bobberson' }).then(function(r) {
       // do something
@@ -30,26 +30,28 @@ You have just made maintaining the endpoint URLs easier and have also made your 
 
 If you look back a the function definitions, you'll notice the usage of the `:id` placeholder. If you specify any arguments that match a placeholder, it will be replaced with that argument's value.
 
+In the next example, we use `Q` to fulfill each promise then execute a single callback when they are done. The response contains an array of responses from each function call.
+
     Q.all([
       repo.createUser({ id: 1, name: 'Bob Bobberson' }),
       repo.updateUser({ id: 1, name: 'Marge Margaretson' }),
       repo.readUser({ id: 1 }),
       repo.deleteUser({ id: 1 })
-    ]).then(function() {
+    ]).then(function(r) {
       // Marge Margaretson
-      console.log(r[1].name);
+      console.log(r[2].name);
     });
 
 Configuration
 -------------
 
-Windex supports multiple configuration options that modify it's behaviour. These options are exposed as properties on a `Windex` instance.
+Windex supports multiple configuration options that modify its behaviour. These options are exposed as properties on a `Windex` instance.
 
-* cache `false` If set to `false` a parameter is added to the query string to break cache. If `true, nothing is added.
-* headers `{}` A hash of headers that will be sent with every request.
-* parsers `{}` A hash of parsers used to parse negotiated content types.
-* prefix `"/"` The prefix to add to the URL of every request.
-* suffix `""` The suffix to add to the URL of every request.
+* `cache` `false` If set to `false` a parameter is added to the query string to break cache. If `true`, nothing is added.
+* `headers` `{}` A hash of headers that will be sent with every request.
+* `parsers` `{}` A hash of parsers used to parse negotiated content types.
+* `prefix` `"/"` The prefix to add to the URL of every request.
+* `suffix` `""` The suffix to add to the URL of every request.
 
 Content Negotiation
 -------------------
