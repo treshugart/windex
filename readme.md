@@ -16,10 +16,10 @@ The goal of Windex is to make maintaining calls to HTTP endpoints short, simple 
 
     var http = Windex.create()
       , repo = {
-          createUser: http.proxy('POST users'),
-          readUser: http.proxy('GET users/:id'),
-          updateUser: http.proxy('PATCH users/:id'),
-          deleteUser: http.proxy('DELETE users/:id')
+          createUser: http.url('POST users').later(),
+          readUser: http.url('GET users/:id').later(),
+          updateUser: http.url('PATCH users/:id').later(),
+          deleteUser: http.url('DELETE users/:id').later()
         };
 
 In doing this, you have just made maintaining the endpoint URLs easier and have also made your code more self-documenting. You can use these new functions just as you would normally with the added bonus of promises.
@@ -52,6 +52,51 @@ Windex supports multiple configuration options that modify its behaviour. These 
 * `parsers` `{}` A hash of parsers used to parse negotiated content types.
 * `prefix` `"/"` The prefix to add to the URL of every request.
 * `suffix` `""` The suffix to add to the URL of every request.
+
+URLs
+----
+
+Above we used `url()` to generate an object that we call `later()` on to give us a way of easily calling a service. That object also has methods that allow you to build your own RESTful URLs programatically.
+
+    var w = windex.create();
+
+    // GET blog/:blog
+    w.url().one('blog');
+
+    // GET blog/:blog/comments
+    w.url().one('blog').all('comments');
+
+    // GET blog/:blog/comments/:limit/:page
+    w.url().one('blog').many('comments');
+
+    // POST blog/:blog/comments
+    w.url().add.one('blog').all('comments');
+
+    // PATCH blog/:blog/comments/:comment
+    w.url().update.one('blog').one('comment');
+
+    // PUT blog/:blog/comments/:comment
+    w.url().replace.one('blog').one('comment');
+
+    // DELETE blog/:blog/comments/:comment
+    w.url().delete.one('blog').one('comment');
+
+Once you have your URL, you can call it by calling `now()`.
+
+    // GET /blogs
+    // { blogs: [ ... ] }
+    w.url().all('blogs').now();
+
+    // GET /blog/1
+    // { blog: { ... } }
+    w.url().one('blog').now({ blog: 1 });
+
+Even more useful as we've seen at the beginning was the use of `later()`.
+
+    var later = w.url().one('blog').later();
+
+    // GET /blog/1
+    later({ blog: 1 });
 
 Content Negotiation
 -------------------

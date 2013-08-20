@@ -158,6 +158,10 @@ describe('Urls', function() {
     url.toString().should.equal(('' + url));
   });
 
+  it('Should allow defaults to be set using a method.', function() {
+    windex.url().use({ test: true }).defaults.test.should.equal(true);
+  });
+
   it('Should create a function that calls a URL with the arguments provided as data and return a promise.', function(done) {
     var url = windex.url('GET :action', { action: 'default' });
     windex.suffix = '.json';
