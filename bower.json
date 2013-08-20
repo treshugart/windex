@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "main": "lib/windex.js",
   "ignore": [
-    "lib",
+    ".gitignore",
+    ".travis.yml",
     "tests",
     "bower.json",
     "package.json",
-    "Gruntfile.js", "readme.md"
+    "Gruntfile.js",
+    "readme.md"
   ],
   "dependencies": {
     "q": "0.9"
