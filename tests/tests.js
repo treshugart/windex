@@ -130,7 +130,7 @@ describe('Requesting', function() {
   });
 });
 
-describe('Proxies', function() {
+describe('Urls', function() {
   var windex
     , server;
 
@@ -143,16 +143,31 @@ describe('Proxies', function() {
     server.restore();
   });
 
+  it('Should allow a URL to be passed in.', function() {
+    windex.url('get test').type.should.equal('GET');
+    windex.url('GET test').type.should.equal('GET');
+    windex.url('GET test').uri.should.equal('test');
+  });
+
+  it('Should allow default replacements to be passed in when formatting.', function() {
+    windex.url('GET :action').toString({ action: 'test' }).should.equal('GET test');
+  });
+
+  it('Should allow toString conversion.', function() {
+    var url = windex.url('GET test');
+    url.toString().should.equal(('' + url));
+  });
+
   it('Should create a function that calls a URL with the arguments provided as data and return a promise.', function(done) {
-    var proxy = windex.proxy('GET :action', { action: 'default' });
+    var url = windex.url('GET :action', { action: 'default' });
     windex.suffix = '.json';
 
     server.respondWith('GET', /^\/default.json/, [200, headers, '{ "action": "default" }']);
     server.respondWith('GET', /^\/modified.json/, [200, headers, '{ "action": "modified" }']);
 
     Q.all([
-      proxy(),
-      proxy({ action: 'modified' })
+      url.now(),
+      url.now({ action: 'modified' })
     ]).then(function(r) {
       r[0].action.should.equal('default');
       r[1].action.should.equal('modified');
@@ -160,5 +175,62 @@ describe('Proxies', function() {
     });
 
     server.respond();
+  });
+
+  it('Should allow programmatic building of the URL.', function() {
+    windex.url().one('user').toString().should.equal('GET user/:user');
+    windex.url().many('users').toString().should.equal('GET users/:limit/:page');
+    windex.url().all('users').toString().should.equal('GET users');
+    windex.url().one('blog').many('comments').toString().should.equal('GET blog/:blog/comments/:limit/:page');
+    windex.url().one('blog').all('comments').toString().should.equal('GET blog/:blog/comments');
+
+    windex.url().get.one('blog').toString().should.equal('GET blog/:blog');
+    windex.url().get.one('blog').and.add.to.all('comments').toString().should.equal('POST blog/:blog/comments');
+    windex.url().get.one('blog').and.update.one('comment').toString().should.equal('PATCH blog/:blog/comment/:comment');
+    windex.url().get.one('blog').and.replace.one('comment').toString().should.equal('PUT blog/:blog/comment/:comment');
+    windex.url().get.one('blog').and.delete.one('comment').toString().should.equal('DELETE blog/:blog/comment/:comment');
+  });
+
+  it('Should remove empty parameters for :limit and :page.', function() {
+    windex.url().many('users').toString({}).should.equal('GET users');
+    windex.url().many('users').toString({ limit: 10 }).should.equal('GET users/10');
+    windex.url().many('users').toString({ limit: 10, page: 1 }).should.equal('GET users/10/1');
+  });
+});
+
+describe('Generation', function() {
+  var windex
+    , server;
+
+  beforeEach(function() {
+    windex = Windex.create();
+    server = sinon.fakeServer.create();
+  });
+
+  afterEach(function() {
+    server.restore();
+  });
+
+  it('Should return a constructor with a generated prototype when one argument is passed.', function() {
+    var Repo = windex.gen({
+      create: 'POST users',
+      getAll: ['GET users', { test: true }]
+    });
+
+    Repo.prototype.create.url.toString().should.equal('POST users');
+    Repo.prototype.getAll.url.toString().should.equal('GET users');
+    Repo.prototype.getAll.url.defaults.test.should.equal(true);
+  });
+
+  it('Should modify a constructor prototype when two or more arguments are passed.', function() {
+    var Repo = windex.gen(function() {}, {
+      create: 'POST users'
+    }, {
+      getAll: ['GET users', { test: true }]
+    });
+
+    Repo.prototype.create.url.toString().should.equal('POST users');
+    Repo.prototype.getAll.url.toString().should.equal('GET users');
+    Repo.prototype.getAll.url.defaults.test.should.equal(true);
   });
 });
