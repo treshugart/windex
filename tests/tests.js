@@ -238,3 +238,27 @@ describe('Generation', function() {
     Repo.prototype.getAll.url.defaults.test.should.equal(true);
   });
 });
+
+describe('Mocking - Instance-Level', function() {
+  var windex;
+
+  beforeEach(function() {
+    windex = Windex.create();
+  });
+
+  it ('Should support string matching.', function(done) {
+    windex.stub('GET test', { data: true });
+    windex.request('GET test').then(function(r) {
+      r.data.should.equal(true);
+      done();
+    });
+  });
+
+  it('Should support regex matching.', function(done) {
+    windex.stub(/test/, { data: true });
+    windex.request('GET test').then(function(r) {
+      r.data.should.equal(true);
+      done();
+    })
+  });
+});
