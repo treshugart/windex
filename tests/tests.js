@@ -41,7 +41,7 @@ describe('Serialisation', function() {
       }
     });
     data.should.be.a('string');
-    data.should.equal('test1=string&test2=10&test3=true&test4=false&test5%5B0%5D=test1&test5%5B1%5D=test2&test6%5Btest1%5D=test1&test6%5Btest2%5D=test2');
+    data.should.equal('test1=string&test2=10&test3=true&test4=false&test5[0]=test1&test5[1]=test2&test6[test1]=test1&test6[test2]=test2');
   });
 });
 
@@ -201,8 +201,8 @@ describe('Urls', function() {
     windex.url().many('users').toString({ limit: 10, page: 1 }).should.equal('GET users/10/1');
   });
 
-  it('Should encode parameters part of the request URI.', function() {
-    windex.url().one('user').toString({ user: 'Your Name' }).should.equal('GET user/Your%20Name');
+  it('Should not encode parameters.', function() {
+    windex.url().one('user').toString({ user: 'Your Name' }).should.equal('GET user/Your Name');
   });
 });
 
