@@ -263,6 +263,27 @@ describe('Mocking - Instance-Level', function() {
     windex.request('GET test').then(function(r) {
       r.data.should.equal(true);
       done();
-    })
+    });
+  });
+
+  it('Should allow a function to be specified instead of a string.', function(done) {
+    windex.stub(/test/, function() {
+      return { data: true };
+    });
+    windex.request('GET test').then(function(r) {
+      r.data.should.equal(true);
+      done();
+    });
+  });
+
+  it('Should pass the pattern matches to the data function.', function(done) {
+    windex.stub(/(test)/, function(uri, test) {
+      return { uri: uri, test: test };
+    });
+    windex.request('GET test').then(function(r) {
+      r.uri.should.equal('test');
+      r.test.should.equal('test');
+      done();
+    });
   });
 });
