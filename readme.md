@@ -1,26 +1,27 @@
 Windex
 ======
 
-Windex is a small JavaScript library that generates functions which make asynchronous HTTP calls and return promises. The purpose of it is to provide a clean way to abstract API calls into a simple method call with parameters.
+Windex is a small AJAX library who's primary purpose is to make maintaining and calling AJAX requests not only easier, but more maintainable and testable.
 
 Requirements
 ------------
 
-- Q `0.9` - Used for the Promise implementation.
-- `JSON.parse()` - Used by default for JSON response parsing.
+- Q `0.9+` - Used for the Promise implementation.
+- `JSON.parse()` - Used to parse response bodies that specify a `Content-Type` of `application/json`.
+- `JSON.stringify()` - Used to serialize request bodies if a `Content-Type` request header of `application/json` is found.
 
 Overview
 --------
 
-The goal of Windex is to make maintaining calls to HTTP endpoints short, simple and maintainable. It gives you the flexibility of defining methods which abstract the HTTP call and parameterization while returning you a promise that is fulfilled or rejected when the call is finished.
+Windex gives you the means to generate functions that call an endpoint and return a promise representing the response. This allows you to organise functionality into an object, or repository.
 
-    var http = Windex.create()
-      , repo = {
-          createUser: http.url('POST users').later(),
-          readUser: http.url('GET users/:id').later(),
-          updateUser: http.url('PATCH users/:id').later(),
-          deleteUser: http.url('DELETE users/:id').later()
-        };
+    var http = Windex();
+    var repo = {
+      createUser: http.url('POST users').later(),
+      readUser: http.url('GET users/:id').later(),
+      updateUser: http.url('PATCH users/:id').later(),
+      deleteUser: http.url('DELETE users/:id').later()
+    };
 
 In doing this, you have just made maintaining the endpoint URLs easier and have also made your code more self-documenting. You can use these new functions just as you would normally with the added bonus of promises.
 
@@ -30,7 +31,7 @@ In doing this, you have just made maintaining the endpoint URLs easier and have 
 
 If you look back a the function definitions, you'll notice the usage of the `:id` placeholder. If you specify any arguments that match a placeholder, it will be replaced with that argument's value.
 
-In the next example, we use `Q` to fulfill each promise then execute a single callback when they are done. The response contains an array of responses from each function call.
+You canj also use `Q` to fulfill each promise then execute a single callback when they are done. For more information see [Q's documentation](https://github.com/kriskowal/q).
 
     Q.all([
       repo.createUser({ id: 1, name: 'Bob Bobberson' }),
@@ -45,20 +46,39 @@ In the next example, we use `Q` to fulfill each promise then execute a single ca
 Configuration
 -------------
 
-Windex supports multiple configuration options that modify its behaviour. These options are exposed as properties on a `Windex` instance.
+Windex supports multiple configuration options that modify its behaviour. Thes are passed in to the constructor and are exposed through the `opts` property on an instance.
 
-* `cache` `false` If set to `false` a parameter is added to the query string to break cache. If `true`, nothing is added.
-* `headers` `{}` A hash of headers that will be sent with every request.
-* `parsers` `{}` A hash of parsers used to parse negotiated content types.
-* `prefix` `"/"` The prefix to add to the URL of every request.
-* `suffix` `""` The suffix to add to the URL of every request.
+### cache
+
+If set to `false` a parameter is added to the query string to break cache. If `true`, nothing is added.
+
+### prefix
+
+The prefix to add to the URL of every request. Defaults to `'/'`. Does not affect stubs.
+
+### suffix
+
+The suffix to add to the URL of every request. Defaults to an empty string. Does not affect stubs.
+
+### headers
+
+A hash of headers that will be sent with every request. By default the `Accept` header is set to `application/json`.
+
+### parsers
+
+A hash of parsers used to parse negotiated content types. A response `Content-Type` of `application/json` is supported by default. If a parser is not found for a particular response type, the response text is passed through.
+
+### serializers
+
+A hash of seralizers used to serialize the request body. By default a `Content-Type` of `application/json` is supported using `JSON.stringify()`. If no serializer is found for the content type specified in the request, the data is serialized using standard form serialization.
 
 URLs
 ----
+All URLs passed to any function in Windex are unformatted. This means the URL should be without the `prefix` and `suffix` as those will be applied automatically.
 
-Above we used `url()` to generate an object that we call `later()` on to give us a way of easily calling a service. That object also has methods that allow you to build your own RESTful URLs programatically.
+You can build your own RESTful URLs programatically:
 
-    var w = windex.create();
+    var w = Windex();
 
     // GET blog/:blog
     w.url().one('blog');
@@ -98,21 +118,15 @@ Even more useful as we've seen at the beginning was the use of `later()`.
     // GET /blog/1
     later({ blog: 1 });
 
-Content Negotiation
--------------------
+Requests
+--------
 
-Windex automatically negotiates the content type of the response and attempts to parse it into the correct format. If negotiation is unsuccessful, the response is simply passed through.
+For handling adhoc requests, there is a suite of methods that may help you:
 
-By default, Windex sends an `Accept` header with the value of `application/json` and has a built-in parser for `application/json` that uses `JSON.parse()`. The `Content-Type` header in the response is used to tell Windex how the response should be parsed. Once the response is handled, the promise is fulfilled using that reponse.
+    var w = Windex();
 
-Helper Methods
---------------
-
-Aside from the main purpose of Windex - `proxy()` - there is also a suite of methods that you can call. There is a method for each method in the HTTP 1.1 Method Definition with the addition of `PATCH`.
-
-    var w = Windex.create();
-
-    // `url` is the URL sans the Request Method: my-url.json
+  // URL should not include the request method.
+  // i.e. my/resource
     w.get(url, data);
     w.post(url, data);
     w.put(url, data);
@@ -125,10 +139,19 @@ Aside from the main purpose of Windex - `proxy()` - there is also a suite of met
 
 You can also call the main `request()` method which all of the above use.
 
-    // `url` is the Request Method and URL: GET my-url.json
+  // URL should include the request method.
+  // i.e. GET my/resource
     w.request(url, data);
 
-Serialization of the `data` parameter is also available to you. This will turn an object into a query string.
+### Content Negotiation
+
+You can negotiate a request once it has executed by passing it to the `negotiate()` method:
+
+  w.negotiate(xmlhHttpRequest);
+
+### Data Serialization
+
+Serialization of the `data` parameter is also available to you. This will format the data according to the `Content-Type` header you have specified in the list of headers in your options.
 
     w.serialize(data);
 
@@ -136,3 +159,22 @@ You can also access the factory used to create the `XMLHttpRequest`.
 
     // Will give you the correct XMLHttpRequest instance for your platform.
     w.xhr();
+
+Testing
+-------
+
+A very useful feature of Windex is the ability to stub requests and responses without taking over all XMLHttpRequest instances. This means you can selectively stub out API calls without breaking any other functionality.
+
+  w.stub('GET my/resource', {
+    data: true
+  });
+
+  w.get('my/resource').then(function(r) {
+    // true
+    console.log(r.data);
+  });
+
+Things to note:
+
+* Stubs are applied to instances. This means stubs against one instance don't affect stubs applied to another Windex instance.
+* Stubs are NOT affected by the `prefix` and `suffix` options. This allows you to change that to whatever you need without affecting the URLs in your stubs.
