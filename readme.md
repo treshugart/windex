@@ -125,8 +125,8 @@ For handling adhoc requests, there is a suite of methods that may help you:
 
     var w = Windex();
 
-  // URL should not include the request method.
-  // i.e. my/resource
+    // URL should not include the request method.
+    // i.e. my/resource
     w.get(url, data);
     w.post(url, data);
     w.put(url, data);
@@ -139,15 +139,15 @@ For handling adhoc requests, there is a suite of methods that may help you:
 
 You can also call the main `request()` method which all of the above use.
 
-  // URL should include the request method.
-  // i.e. GET my/resource
+    // URL should include the request method.
+    // i.e. GET my/resource
     w.request(url, data);
 
 ### Content Negotiation
 
 You can negotiate a request once it has executed by passing it to the `negotiate()` method:
 
-  w.negotiate(xmlhHttpRequest);
+    w.negotiate(xmlhHttpRequest);
 
 ### Data Serialization
 
