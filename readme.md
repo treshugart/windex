@@ -165,14 +165,14 @@ Testing
 
 A very useful feature of Windex is the ability to stub requests and responses without taking over all XMLHttpRequest instances. This means you can selectively stub out API calls without breaking any other functionality.
 
-  w.stub('GET my/resource', {
-    data: true
-  });
+    w.stub('GET my/resource', {
+      data: true
+    });
 
-  w.get('my/resource').then(function(r) {
-    // true
-    console.log(r.data);
-  });
+    w.get('my/resource').then(function(r) {
+      // true
+      console.log(r.data);
+    });
 
 Things to note:
 
