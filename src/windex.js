@@ -7,43 +7,32 @@
     Windex = factory(Q);
   }
 }(function(Q) {
-  var defaults = {
-    cache: false,
-    prefix: '/',
-    suffix: '',
-    headers: {
+  var hasDefineProperty = false;
+
+  try {
+    Object.defineProperty({}, 'a', {});
+    hasDefineProperty = true;
+  } catch (e) {}
+
+
+  function Windex() {
+    this.cache = false;
+    this.headers = {
       Accept: 'application/json'
-    },
-    parsers: {
+    };
+    this.parsers = {
       'application/json': function(data) {
         return JSON.parse(data || {});
       }
-    },
-    serializers: {
-      'application/json': function(data) {
-        return JSON.stringify(data);
-      }
-    }
-  };
-
-  function Windex(opts) {
-    if (!(this instanceof Windex)) {
-      return new Windex(opts);
-    }
-
-    if (!opts) {
-      opts = {};
-    }
-
-    for (a in defaults) {
-      if (typeof opts[a] === 'undefined') {
-        opts[a] === defaults[a];
-      }
-    }
-
-    this.opts = opts;
+    };
+    this.prefix = '/';
+    this.suffix = '';
     this.stubs = [];
   }
+
+  Windex.create = function() {
+    return new Windex();
+  };
 
   Windex.prototype = {
     get: function(url, data) {
@@ -84,9 +73,9 @@
 
     request: function(url, data) {
       var that = this;
-      var parts = url.match(/^([a-zA-Z]+)?\s+?(.*)/);
+      var parts = url.match(/^([a-zA-Z]+)?\s+?(.+)/);
       var type = (parts[1] || 'GET').toUpperCase();
-      var uri = this.opts.prefix + parts[2] + this.opts.suffix;
+      var uri = this.prefix + parts[2] + this.suffix;
       var stubUri = type + ' ' + parts[2];
       var data = this.serialize(data || {});
       var request = this.xhr();
@@ -97,8 +86,8 @@
         stubUri += '?' + data;
       }
 
-      if (!this.opts.cache) {
-        uri += (uri.indexOf('?') === -1 ? '?' : '&') + '_' + new Date().getTime() + '=1';
+      if (!this.cache) {
+        uri += (data ? '&' : '?') + '_' + new Date().getTime() + '=1';
       }
 
       for (var i = 0; i < this.stubs.length; i++) {
@@ -113,12 +102,12 @@
 
       request.open(type, encodeURI(uri), true);
 
-      if (data && type !== 'GET' && typeof this.opts.headers['Content-Type'] === 'undefined') {
+      if (data && type !== 'GET') {
         request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
       }
 
-      for (var header in this.opts.headers) {
-        request.setRequestHeader(header, this.opts.headers[header]);
+      for (var header in this.headers) {
+        request.setRequestHeader(header, this.headers[header]);
       }
 
       request.onreadystatechange = function() {
@@ -130,7 +119,7 @@
           throw new Error(request.status + ': ' + request.statusText);
         }
 
-        deferred.resolve(that.negotiate(request, deferred));
+        deferred.resolve(that.negotiate(request));
       };
 
       if (type === 'GET') {
@@ -143,46 +132,27 @@
     },
 
     negotiate: function(request) {
-      if (!request.responseText) {
-        return '';
-      }
+      var contentType = request.getResponseHeader('Content-Type');
 
-      var contentTypes = request.getResponseHeader('Content-Type').split(';');
-
-      for (var a = 0; a < contentTypes.length; a++) {
-        var contentType = contentTypes[a];
-
-        if (contentType && typeof this.opts.parsers[contentType] === 'function') {
-          try {
-            return this.opts.parsers[contentType](request.responseText);
-          } catch (e) {
-            throw new Error(
-              'Cannot parse the response "'
-              + request.responseText
-              + '" with the content type of "'
-              + contentType
-              + '" from "'
-              + request.url
-              + '" with message: '
-              + e
-            );
-          }
+      if (contentType && typeof this.parsers[contentType] === 'function') {
+        try {
+          return this.parsers[contentType](request.responseText);
+        } catch (e) {
+          deferred.reject(new Error('Cannot parse the response "' + request.responseText + '" with the content type of "' + contentType + '" from "' + request.url + '" with message: ' + e));
         }
       }
 
       return request.responseText;
     },
 
-    serialize: function(obj) {
-      if (typeof this.opts.serializers[this.opts.headers['Content-Type']] === 'function') {
-        return this.opts.serializers[this.opts.headers['Content-Type']](obj);
-      }
-
+    serialize: function(obj, prefix) {
       var str = [];
 
       for (var a in obj) {
-        var v = obj[a];
-        str.push(typeof v === 'object' ? this.serialize(v) : a + '=' + v);
+        var k = prefix ? prefix + '[' + a + ']' : a
+          , v = obj[a];
+
+        str.push(typeof v === 'object' ? this.serialize(v, k) : k + '=' + v);
       }
 
       return str.join('&');
@@ -278,14 +248,14 @@
         };
       })(types[a]);
 
-      if (Object.defineProperty) {
+      if (hasDefineProperty) {
         Object.defineProperty(this, a, { get: func });
       } else {
         this[a] = func;
       }
     }
 
-    if (Object.defineProperty) {
+    if (hasDefineProperty) {
       var passthrus = ['and', 'to'];
 
       for (var b = 0; b < passthrus.length; b++) {
