@@ -178,3 +178,5 @@ Things to note:
 
 * Stubs are applied to instances. This means stubs against one instance don't affect stubs applied to another Windex instance.
 * Stubs are NOT affected by the `prefix` and `suffix` options. This allows you to change that to whatever you need without affecting the URLs in your stubs.
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/treshugart/windex/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
