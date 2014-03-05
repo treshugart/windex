@@ -73,6 +73,7 @@
 
     request: function(url, data) {
       var that = this;
+      var original = data;
       var parts = url.match(/^([a-zA-Z]+)?\s+?(.+)/);
       var type = (parts[1] || 'GET').toUpperCase();
       var uri = this.prefix + parts[2] + this.suffix;
@@ -95,6 +96,7 @@
         var params = stubUri.match(stub.uri);
 
         if (params) {
+          params.push(original);
           deferred.resolve(stub.data.apply(stub.data, params));
           return deferred.promise;
         }
