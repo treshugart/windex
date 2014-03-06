@@ -286,4 +286,49 @@ describe('Mocking - Instance-Level', function() {
       done();
     });
   });
+
 });
+
+describe('POST data accessible in stubs', function() {
+  var windex;
+  var service = 'POST security/authenticate';
+  var success = 'authentication successfull';
+  var fail = 'authentication fails for user: ';
+
+  beforeEach(function() {
+    windex = Windex.create();
+    windex.stub(service, function(uri, user) {
+      var status = user.email === 'beta@test.com' && user.password === 'beta';
+      return { status: status, message: status ? success : fail + user.email };
+    });
+  });
+
+  it('Should pass the POST data to the stub handler.', function(done) {
+    var user =  { email: 'beta@test.com', password: 'beta' };
+    windex.request(service, user).then(function(r) {
+      r.status.should.equal(true);
+      r.message.should.equal(success);
+      done();
+    });
+  });
+
+  it('Should pass the POST data to the stub handler. (false positive)', function(done) {
+    var user = { email: 'beta1@test.com', password: 'beta' };
+    windex.request(service, user).then(function(r) {
+      r.status.should.equal(false);
+      r.message.should.equal(fail + user.email);
+      done();
+    });
+  });
+
+  it('Should pass the POST data to the stub handler. (false positive)', function(done) {
+    var user = { email: 'beta@test.com', password: 'beta1' };
+    windex.request(service, user).then(function(r) {
+      r.status.should.equal(false);
+      r.message.should.equal(fail + user.email);
+      done();
+    });
+  });
+
+});
+
