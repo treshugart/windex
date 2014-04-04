@@ -47,7 +47,7 @@
       return this.request('PUT ' + url, data);
     },
 
-    delete: function(url, data) {
+    'delete': function(url, data) {
       return this.request('DELETE ' + url, data);
     },
 
@@ -237,7 +237,7 @@
       add: 'POST',
       update: 'PATCH',
       replace: 'PUT',
-      delete: 'DELETE'
+      'delete': 'DELETE'
     }
 
     // Either applies a getter or a method depending
