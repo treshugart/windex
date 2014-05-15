@@ -331,4 +331,3 @@ describe('POST data accessible in stubs', function() {
   });
 
 });
-
