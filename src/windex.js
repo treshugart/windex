@@ -155,7 +155,7 @@
         var k = prefix ? prefix + '[' + a + ']' : a;
         var v = obj[a];
 
-        str.push(typeof v === 'object' ? this.serialize(v, k) : k + '=' + v);
+        str.push(typeof v === 'object' ? this.serialize(v, k) : k + '=' + encodeURIComponent(v));
       }
 
       return str.join('&');

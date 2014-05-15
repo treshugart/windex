@@ -43,6 +43,12 @@ describe('Serialisation', function() {
     data.should.be.a('string');
     data.should.equal('test1=string&test2=10&test3=true&test4=false&test5[0]=test1&test5[1]=test2&test6[test1]=test1&test6[test2]=test2');
   });
+
+  it('Should encode each uri value.', function () {
+    var data = windex.serialize({
+      test: 'some [ value ] that includes many characters & data'
+    });
+  });
 });
 
 describe('Requesting', function() {
