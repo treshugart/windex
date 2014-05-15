@@ -48,6 +48,7 @@ describe('Serialisation', function() {
     var data = windex.serialize({
       test: 'some [ value ] that includes many characters & data'
     });
+    data.should.equal('test=some%20%5B%20value%20%5D%20that%20includes%20many%20characters%20%26%20data');
   });
 });
 
