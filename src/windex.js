@@ -76,7 +76,7 @@
       var original = data;
       var parts = url.match(/^([a-zA-Z]+)?\s+?(.+)/);
       var type = (parts[1] || 'GET').toUpperCase();
-      var uri = this.prefix + parts[2] + this.suffix;
+      var uri = this.prefix + encodeURI(parts[2]) + this.suffix;
       var stubUri = type + ' ' + parts[2];
       var request = this.xhr();
       var deferred = Q.defer();
@@ -103,7 +103,7 @@
         }
       }
 
-      request.open(type, encodeURI(uri), true);
+      request.open(type, uri, true);
 
       if (data && type !== 'GET') {
         request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
