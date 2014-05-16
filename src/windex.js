@@ -76,7 +76,7 @@
       var original = data;
       var parts = url.match(/^([a-zA-Z]+)?\s+?(.+)/);
       var type = (parts[1] || 'GET').toUpperCase();
-      var uri = this.prefix + encodeURI(parts[2]) + this.suffix;
+      var uri = this.prefix + parts[2] + this.suffix;
       var stubUri = type + ' ' + parts[2];
       var request = this.xhr();
       var deferred = Q.defer();
@@ -357,7 +357,7 @@
 
         for (var b in data) {
           if (url.match(':' + b)) {
-            url = url.replace(':' + b, data[b]);
+            url = url.replace(':' + b, encodeURIComponent(data[b]));
           }
         }
       }

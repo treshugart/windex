@@ -207,10 +207,6 @@ describe('Urls', function() {
     windex.url().many('users').toString({ limit: 10 }).should.equal('GET users/10');
     windex.url().many('users').toString({ limit: 10, page: 1 }).should.equal('GET users/10/1');
   });
-
-  it('Should not encode parameters.', function() {
-    windex.url().one('user').toString({ user: 'Your Name' }).should.equal('GET user/Your Name');
-  });
 });
 
 describe('Generation', function() {
