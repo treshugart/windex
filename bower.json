@@ -13,10 +13,5 @@
   ],
   "dependencies": {
     "q": "^1.0.0"
-  },
-  "devDependencies": {
-    "mocha": "1.12",
-    "chai": "1.7",
-    "sinon": "http://sinonjs.org/releases/sinon-1.7.3.js"
   }
 }

@@ -2,7 +2,7 @@
   if (typeof exports === 'object') {
     module.exports = factory(require('q'));
   } else if (typeof define === 'function' && define.amd) {
-    define(['q'], factory);
+    define('windex', ['q'], factory);
   } else {
     Windex = factory(Q);
   }
