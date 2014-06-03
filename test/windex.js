@@ -1,6 +1,26 @@
 (function () {
   'use strict';
 
+  var isDecentBrowser = typeof Array.prototype.map === 'function';
+
+  // Most good assertion libraries don't support, or work in, IE8.
+  function assert (expression, message) {
+    if (!expression) {
+      throw new Error(message);
+    }
+  }
+
+  // Array.prototype.map() is not supported in IE8.
+  function map (arr, fn) {
+    var copy = [];
+
+    for (var a = 0; a < arr.length; a++) {
+      copy.push(fn(arr[a], a));
+    }
+
+    return copy;
+  }
+
   var headers = { 'Content-Type': 'application/json' };
   var response = '{ "test": true }';
 
@@ -68,35 +88,37 @@
       server.restore();
     });
 
-    it('Should make an asynchronous request.', function(done) {
-      windex.request('GET test').then(function(r) {
-        assert(typeof r === 'object');
-        assert(r.test === true);
-        done();
+    if (isDecentBrowser) {
+      it('Should make an asynchronous request.', function(done) {
+        windex.request('GET test').then(function(r) {
+          assert(typeof r === 'object');
+          assert(r.test === true);
+          done();
+        });
+
+        server.requests[0].respond(200, headers, response);
       });
 
-      server.requests[0].respond(200, headers, response);
-    });
-
-    !function() {
-      var types = ['get', 'post', 'put', 'delete', 'patch', 'options', 'trace', 'head', 'connect'];
-      var arrTypes = types.map(function(s) {
+      !function() {
+        var types = ['get', 'post', 'put', 'delete', 'patch', 'options', 'trace', 'head', 'connect'];
+        var arrTypes = map(types, function(s) {
             return s.toUpperCase();
           });
-      var strTypes = arrTypes.slice(0, arrTypes.length - 1).join(', ') + ' and ' + arrTypes[arrTypes.length - 1];
+        var strTypes = arrTypes.slice(0, arrTypes.length - 1).join(', ') + ' and ' + arrTypes[arrTypes.length - 1];
 
-      it('Should support ' + strTypes + ' requests.', function(done) {
-        for (var a = 0; a < types.length; a++) {
-          windex[types[a]]('someurl').then(function(r) {
-            assert(typeof r === 'object');
-            assert(r.test === true);
-            done();
-          });
+        it('Should support ' + strTypes + ' requests.', function(done) {
+          for (var a = 0; a < types.length; a++) {
+            windex[types[a]]('someurl').then(function(r) {
+              assert(typeof r === 'object');
+              assert(r.test === true);
+              done();
+            });
 
-          server.requests[a].respond(200, headers, response);
-        }
-      });
-    }();
+            server.requests[a].respond(200, headers, response);
+          }
+        });
+      }();
+    }
 
     it('Should support custom prefixes and suffixes.', function(done) {
       windex.prefix = '/my-test-prefix/';
@@ -196,11 +218,13 @@
       assert(windex.url().one('blog').many('comments').toString() === 'GET blog/:blog/comments/:limit/:page');
       assert(windex.url().one('blog').all('comments').toString() === 'GET blog/:blog/comments');
 
-      assert(windex.url().get.one('blog').toString() === 'GET blog/:blog');
-      // assert(windex.url().get.one('blog').and.add.to.all('comments').toString() === 'POST blog/:blog/comments');
-      // assert(windex.url().get.one('blog').and.update.one('comment').toString() === 'PATCH blog/:blog/comment/:comment');
-      // assert(windex.url().get.one('blog').and.replace.one('comment').toString() === 'PUT blog/:blog/comment/:comment');
-      // assert(windex.url().get.one('blog').and.delete.one('comment').toString() === 'DELETE blog/:blog/comment/:comment');
+      if (isDecentBrowser) {
+        assert(windex.url().get.one('blog').toString() === 'GET blog/:blog');
+        assert(windex.url().get.one('blog').and.add.to.all('comments').toString() === 'POST blog/:blog/comments');
+        assert(windex.url().get.one('blog').and.update.one('comment').toString() === 'PATCH blog/:blog/comment/:comment');
+        assert(windex.url().get.one('blog').and.replace.one('comment').toString() === 'PUT blog/:blog/comment/:comment');
+        assert(windex.url().get.one('blog').and['delete'].one('comment').toString() === 'DELETE blog/:blog/comment/:comment');
+      }
     });
 
     it('Should remove empty parameters for :limit and :page.', function() {

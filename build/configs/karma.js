@@ -10,12 +10,10 @@ module.exports = function (grunt) {
         'test/windex.js'
       ],
       frameworks: [
-        'chai',
         'mocha',
         'sinon'
       ],
       plugins: [
-        'karma-chai',
         'karma-mocha',
         'karma-phantomjs-launcher',
         'karma-sinon'
